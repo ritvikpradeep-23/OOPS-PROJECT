@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert, Lock, User, Mail, KeyRound } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { errorMessage } from '../../services/backend';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -21,11 +22,10 @@ const Register = () => {
         setError('');
         try {
             await register({ name: name.trim(), email: email.trim(), password, role });
-            await login({ name: name.trim(), email: email.trim(), password, role });
+            await login({ email: email.trim(), password });
             navigate(role === 'ADMIN' ? '/admin/dashboard' : '/user/dashboard');
         } catch (error) {
-            setError(error.message || 'Registration failed. Check the entered details and try again.');
-            console.error('Registration failed', error);
+            setError(errorMessage(error));
         }
     };
 

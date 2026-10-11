@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import PageHeader from '../../components/PageHeader';
 import StatusBadge from '../../components/StatusBadge';
+import ErrorNote from '../../components/ErrorNote';
 import { Package, Droplets, Zap, Baby } from 'lucide-react';
-import { readResources, subscribeToKey } from '../../services/localStore';
+import { getResources } from '../../services/backend';
+import { useApi } from '../../services/useApi';
 
 const Resources = () => {
-    const [resources, setResources] = useState(readResources());
-    useEffect(() => subscribeToKey('resources', () => setResources(readResources())), []);
+    const { data: resources, error } = useApi(getResources);
     return (
         <div>
             <PageHeader
                 title="Resources & Supplies"
                 description="Check inventory availability at local hubs."
             />
+            <ErrorNote message={error} />
 
             <div className="card">
                 <div className="card-header">

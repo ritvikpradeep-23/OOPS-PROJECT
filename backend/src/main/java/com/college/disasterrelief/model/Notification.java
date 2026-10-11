@@ -23,6 +23,10 @@ public class Notification {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    private String title;
+
+    private String severity;
+
     @Column(nullable = false, length = 1000)
     private String message;
 

@@ -1,20 +1,38 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PageHeader from '../../components/PageHeader';
+import ErrorNote from '../../components/ErrorNote';
 import { Send, Bell } from 'lucide-react';
-import { addNotification, readNotifications, subscribeToKey } from '../../services/localStore';
+import { broadcastNotification, errorMessage, getNotifications } from '../../services/backend';
+import { useApi } from '../../services/useApi';
+
+const ALL_SECTORS = 'All Global Units (System Wide)';
 
 const AdminNotifications = () => {
-    const [form, setForm] = useState({ severity: 'General Update', sector: 'All Global Units (System Wide)', title: '', message: '' });
+    const [form, setForm] = useState({ severity: 'General Update', sector: ALL_SECTORS, title: '', message: '' });
     const [feedback, setFeedback] = useState('');
-    const [notifications, setNotifications] = useState(readNotifications());
-    useEffect(() => subscribeToKey('notifications', () => setNotifications(readNotifications())), []);
-    const submit = event => { event.preventDefault(); if (!form.title.trim() || !form.message.trim()) { setFeedback('Enter a title and message before broadcasting.'); return; } addNotification(form); setFeedback('Broadcast queued for delivery.'); setForm({ ...form, title: '', message: '' }); };
+    const { data: notifications, error, reload } = useApi(getNotifications);
+    const workflow = notifications.filter(notification => notification.type !== 'EMERGENCY_ALERT');
+
+    const submit = async event => {
+        event.preventDefault();
+        if (!form.title.trim() || !form.message.trim()) { setFeedback('Enter a title and message before broadcasting.'); return; }
+        try {
+            const message = form.sector === ALL_SECTORS ? form.message : `[${form.sector}] ${form.message}`;
+            await broadcastNotification({ title: form.title.trim(), message, severity: form.severity });
+            setFeedback('Broadcast delivered to all registered users.');
+            setForm({ ...form, title: '', message: '' });
+            await reload();
+        } catch (err) {
+            setFeedback(errorMessage(err));
+        }
+    };
     return (
         <div>
             <PageHeader
                 title="Broadcast Push Notifications"
                 description="Force system-wide alerts, SMS, and app notifications to all active bases."
             />
+            <ErrorNote message={error} />
 
             <div className="card" style={{ maxWidth: '800px' }}>
                 <div className="card-header">
@@ -35,7 +53,7 @@ const AdminNotifications = () => {
                         <div className="form-group">
                             <label className="form-label">Target Audience Sector</label>
                             <select name="sector" value={form.sector} onChange={event => setForm({ ...form, sector: event.target.value })} className="form-input">
-                                <option>All Global Units (System Wide)</option>
+                                <option>{ALL_SECTORS}</option>
                                 <option>Central Operations</option>
                                 <option>Kochi Sector</option>
                             </select>
@@ -58,7 +76,7 @@ const AdminNotifications = () => {
                     </form>
                 </div>
             </div>
-            <div className="card" style={{ maxWidth: '800px', marginTop: '1.5rem' }}><div className="card-header"><Bell size={18} style={{ marginRight: '0.5rem', display: 'inline-block' }} />Workflow Notifications</div><div className="card-body">{notifications.filter(notification => notification.recipientRole === 'ADMIN').map(notification => <div key={notification.id} style={{ padding: '0.75rem 0', borderBottom: '1px solid var(--border-color)' }}><strong>{notification.title}</strong><p style={{ color: 'var(--text-secondary)', margin: '0.35rem 0' }}>{notification.message}</p><span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>{new Date(notification.createdAt).toLocaleString()}</span></div>)}{!notifications.some(notification => notification.recipientRole === 'ADMIN') && <p style={{ color: 'var(--text-secondary)' }}>No volunteer workflow notifications.</p>}</div></div>
+            <div className="card" style={{ maxWidth: '800px', marginTop: '1.5rem' }}><div className="card-header"><Bell size={18} style={{ marginRight: '0.5rem', display: 'inline-block' }} />Workflow Notifications</div><div className="card-body">{workflow.map(notification => <div key={notification.id} style={{ padding: '0.75rem 0', borderBottom: '1px solid var(--border-color)' }}><strong>{notification.title}</strong><p style={{ color: 'var(--text-secondary)', margin: '0.35rem 0' }}>{notification.message}</p><span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>{new Date(notification.createdAt).toLocaleString()}</span></div>)}{!workflow.length && <p style={{ color: 'var(--text-secondary)' }}>No workflow notifications.</p>}</div></div>
         </div>
     );
 };

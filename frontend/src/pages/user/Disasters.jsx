@@ -1,25 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useLocation } from 'react-router-dom';
 import PageHeader from '../../components/PageHeader';
 import StatusBadge from '../../components/StatusBadge';
 import { AlertTriangle, MapPin, Navigation } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import api from '../../services/api';
+import ErrorNote from '../../components/ErrorNote';
 import { useNavigate } from 'react-router-dom';
-import { readDisasters, subscribeToKey, writeCollection } from '../../services/localStore';
+import { getDisasters } from '../../services/backend';
+import { useApi } from '../../services/useApi';
 
 const Disasters = () => {
-    const [disasters, setDisasters] = useState(readDisasters());
+    const { data: disasters, error } = useApi(getDisasters);
     const navigate = useNavigate();
     const location = useLocation();
     const search = new URLSearchParams(location.search).get('search')?.toLowerCase() || '';
     const visibleDisasters = disasters.filter(d => `${d.name} ${d.location} ${d.status}`.toLowerCase().includes(search));
     const mappedDisasters = visibleDisasters.filter(disaster => Number.isFinite(Number(disaster.lat)) && Number.isFinite(Number(disaster.lng)));
-
-    useEffect(() => {
-        api.get('/disasters').then(res => { setDisasters(res.data); writeCollection('disasters', res.data); }).catch(err => console.warn('API-ready disasters request unavailable', err));
-        return subscribeToKey('disasters', () => setDisasters(readDisasters()));
-    }, []);
 
     return (
         <div>
@@ -29,6 +25,7 @@ const Disasters = () => {
                 action={<button onClick={() => navigate('/user/request-help')} className="btn btn-primary"><AlertTriangle size={16} /> Report New Incident</button>}
             />
 
+            <ErrorNote message={error} />
             {mappedDisasters.length ? <div className="card" style={{ marginBottom: '1.5rem', overflow: 'hidden' }}>
                 <MapContainer center={[10.8505, 76.2711]} zoom={7} style={{ height: '350px', width: '100%', zIndex: 0 }}>
                     <TileLayer

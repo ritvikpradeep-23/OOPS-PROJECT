@@ -1,39 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import PageHeader from '../../components/PageHeader';
 import StatusBadge from '../../components/StatusBadge';
+import ErrorNote from '../../components/ErrorNote';
 import { HeartHandshake } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { addNotification, readVolunteers, subscribeToKey, writeVolunteers } from '../../services/localStore';
+import { applyAsVolunteer, errorMessage, getMyVolunteerApplication, respondToAssignment } from '../../services/backend';
+import { useApi } from '../../services/useApi';
 
 const Volunteer = () => {
-    const { user } = useAuth();
-    const [application, setApplication] = useState(null);
+    const { data: application, loading, error, reload } = useApi(getMyVolunteerApplication, null);
+    const [actionError, setActionError] = useState('');
 
-    useEffect(() => {
-        const load = () => setApplication(readVolunteers().find(item => item.userEmail === user?.email) || null);
-        load();
-        return subscribeToKey('volunteers', load);
-    }, [user?.email]);
-
-    const apply = () => {
-        const next = {
-            id: Date.now(),
-            userEmail: user?.email,
-            userName: user?.name,
-            role: 'Volunteer',
-            status: 'Pending',
-            createdAt: new Date().toISOString(),
-            assignment: null
-        };
-        writeVolunteers([...readVolunteers().filter(item => item.userEmail !== user?.email), next]);
+    const run = async action => {
+        try {
+            setActionError('');
+            await action();
+            await reload();
+        } catch (err) {
+            setActionError(errorMessage(err));
+        }
     };
-
-    const respond = response => {
-        writeVolunteers(readVolunteers().map(item => item.userEmail === user?.email && item.assignment
-            ? { ...item, assignment: { ...item.assignment, response, respondedAt: new Date().toISOString() } }
-            : item));
-        if (application?.assignment) addNotification({ severity: 'Volunteer Update', title: `Assignment ${response}`, message: `${user?.name} ${response.toLowerCase()} assignment ${application.assignment.requestId}.`, recipientRole: 'ADMIN' });
-    };
+    const apply = () => run(applyAsVolunteer);
+    const respond = accepted => run(() => respondToAssignment(application.assignment.id, accepted));
 
     const assignment = application?.assignment;
     const assignmentResponse = assignment?.response || 'Pending';
@@ -43,6 +30,7 @@ const Volunteer = () => {
     return (
         <div>
             <PageHeader title="Volunteer" description="Apply for volunteer work and manage assignments from administrators." />
+            <ErrorNote message={error || actionError} />
 
             <div className="card">
                 <div className="card-header">
@@ -50,7 +38,9 @@ const Volunteer = () => {
                     Volunteer Application
                 </div>
                 <div className="card-body">
-                    {!application ? (
+                    {loading ? (
+                        <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Loading your application...</p>
+                    ) : !application ? (
                         <>
                             <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Submit an application to be considered for relief assignments.</p>
                             <button onClick={apply} className="btn btn-primary"><HeartHandshake size={16} /> Apply as Volunteer</button>
@@ -82,7 +72,7 @@ const Volunteer = () => {
                             <div><strong>Location:</strong> {assignment.location || 'Not provided'}</div>
                             <div><strong>Date/Time:</strong> {assignmentDate}</div>
                             {assignment.latitude && assignment.longitude && <div><strong>Coordinates:</strong> {assignment.latitude}, {assignment.longitude}</div>}
-                            {assignmentResponse === 'Pending' && <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}><button onClick={() => respond('Accepted')} className="btn btn-primary">Accept</button><button onClick={() => respond('Declined')} className="btn btn-secondary">Decline</button></div>}
+                            {assignmentResponse === 'Pending' && <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}><button onClick={() => respond(true)} className="btn btn-primary">Accept</button><button onClick={() => respond(false)} className="btn btn-secondary">Decline</button></div>}
                             {assignmentResponse === 'Accepted' && <p style={{ color: 'var(--color-success)', margin: 0 }}>You accepted this assignment.</p>}
                             {assignmentResponse === 'Declined' && <p style={{ color: 'var(--color-danger-text)', margin: 0 }}>You declined this assignment.</p>}
                         </div>

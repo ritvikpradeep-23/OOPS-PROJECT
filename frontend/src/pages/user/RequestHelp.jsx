@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/PageHeader';
 import { HandHeart, Send } from 'lucide-react';
 import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
-import { useAuth } from '../../context/AuthContext';
-import { readRequests, writeRequests } from '../../services/localStore';
+import { createRequest, errorMessage } from '../../services/backend';
 
 const LocationSelector = ({ position, onSelect }) => {
     useMapEvents({ click: event => onSelect({ latitude: event.latlng.lat, longitude: event.latlng.lng }) });
@@ -13,7 +12,6 @@ const LocationSelector = ({ position, onSelect }) => {
 
 const RequestHelp = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
     const [form, setForm] = useState({ type: 'Medical Assistance', priority: 'high', location: '', people: '1', details: '', latitude: '', longitude: '' });
     const [message, setMessage] = useState('');
 
@@ -29,16 +27,19 @@ const RequestHelp = () => {
             () => setMessage('Unable to capture your location. Select a point on the map instead.')
         );
     };
-    const handleSubmit = event => {
+    const handleSubmit = async event => {
         event.preventDefault();
         if (!form.location.trim() || !form.people || Number(form.people) < 1) {
             setMessage('Add a location and at least one affected person.');
             return;
         }
-        const request = { ...form, id: `RH-${Date.now()}`, createdAt: new Date().toISOString(), status: 'Pending', userEmail: user?.email, userName: user?.name };
-        writeRequests([...readRequests(), request]);
-        setMessage('Request submitted and added to your request pipeline.');
-        setForm({ type: 'Medical Assistance', priority: 'high', location: '', people: '1', details: '', latitude: '', longitude: '' });
+        try {
+            await createRequest(form);
+            setMessage('Request submitted and added to your request pipeline.');
+            setForm({ type: 'Medical Assistance', priority: 'high', location: '', people: '1', details: '', latitude: '', longitude: '' });
+        } catch (error) {
+            setMessage(errorMessage(error));
+        }
     };
     return (
         <div>

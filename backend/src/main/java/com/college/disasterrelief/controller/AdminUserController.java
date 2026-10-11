@@ -1,10 +1,12 @@
 package com.college.disasterrelief.controller;
 
 import com.college.disasterrelief.dto.user.UserResponse;
+import com.college.disasterrelief.model.User;
 import com.college.disasterrelief.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,8 +30,8 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        userService.deleteUser(id);
+    public ResponseEntity<Void> delete(@AuthenticationPrincipal User actor, @PathVariable Long id) {
+        userService.deleteUser(actor, id);
         return ResponseEntity.noContent().build();
     }
 }

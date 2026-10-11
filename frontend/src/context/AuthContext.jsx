@@ -1,105 +1,74 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import api from '../services/api';
-import { getRegisteredUsers, writeCollection } from '../services/localStore';
+import { getMyProfile, toApiRole, toUiRole, updateMyProfile } from '../services/backend';
 
 const AuthContext = createContext();
+
+const clearSession = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+};
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Attempt to load user from localStorage on initial load
         const storedUser = localStorage.getItem('user');
-        if (storedUser) {
+        const token = localStorage.getItem('token');
+        if (storedUser && token && token !== 'local-auth-token') {
             try {
-                const parsedUser = JSON.parse(storedUser);
-                const registeredUsers = getRegisteredUsers();
-                const isLocalSession = localStorage.getItem('token') === 'local-auth-token';
-                const isRegistered = registeredUsers.some(registeredUser => registeredUser.email === parsedUser.email);
-                if (!isLocalSession || isRegistered) {
-                    setUser(parsedUser);
-                } else {
-                    localStorage.removeItem('user');
-                    localStorage.removeItem('token');
-                }
+                setUser(JSON.parse(storedUser));
             } catch {
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
+                clearSession();
             }
+        } else {
+            clearSession();
         }
         setLoading(false);
     }, []);
 
-    const login = async (credentials) => {
-        try {
-            const res = await api.post('/auth/login', credentials);
-            const data = res.data;
-            const authenticatedUser = { ...data.user, role: (data.user.role || credentials.role || 'USER').toUpperCase() };
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(authenticatedUser));
-            setUser(authenticatedUser);
-            return authenticatedUser;
-        } catch (error) {
-            if (error.response) {
-                throw error;
-            }
-            const registeredUsers = getRegisteredUsers();
-            const registeredUser = registeredUsers.find(
-                userRecord => userRecord.email === credentials.email && userRecord.password === credentials.password
-            );
-            if (!registeredUser) {
-                throw new Error('Invalid credentials or account is not registered.');
-            }
+    const login = async ({ email, password }) => {
+        const res = await api.post('/auth/login', { email, password });
+        const { token, id, name, email: accountEmail, role } = res.data;
+        localStorage.setItem('token', token);
 
-            const authenticatedUser = {
-                id: registeredUser.id,
-                name: registeredUser.name,
-                role: registeredUser.role || 'USER',
-                email: registeredUser.email
-            };
-            localStorage.setItem('token', 'local-auth-token');
-            localStorage.setItem('user', JSON.stringify(authenticatedUser));
-            setUser(authenticatedUser);
-            return authenticatedUser;
+        let profile = {};
+        try {
+            profile = await getMyProfile();
+        } catch {
+            profile = {};
         }
+
+        const authenticatedUser = {
+            id,
+            name,
+            email: accountEmail,
+            role: toUiRole(role),
+            apiRole: role,
+            phone: profile.phone || '',
+            location: profile.location || ''
+        };
+        localStorage.setItem('user', JSON.stringify(authenticatedUser));
+        setUser(authenticatedUser);
+        return authenticatedUser;
     };
 
-    const register = async (userData) => {
-        const registeredUsers = getRegisteredUsers();
-        if (registeredUsers.some(userRecord => userRecord.email === userData.email)) {
-            throw new Error('An account with this email is already registered.');
-        }
-
-        try {
-            const res = await api.post('/auth/register', userData);
-            localStorage.setItem('registeredUsers', JSON.stringify([
-                ...registeredUsers,
-                { id: res.data?.user?.id || Date.now(), name: userData.name, email: userData.email, password: userData.password, role: userData.role || res.data?.user?.role || 'USER' }
-            ]));
-            return res.data;
-        } catch (error) {
-            if (error.response) {
-                throw error;
-            }
-            localStorage.setItem('registeredUsers', JSON.stringify([
-                ...registeredUsers,
-                { id: Date.now(), name: userData.name, email: userData.email, password: userData.password, role: userData.role || 'USER' }
-            ]));
-            return { message: 'Registration saved locally until the API is available.' };
-        }
+    const register = async ({ name, email, password, role, phone, location }) => {
+        const res = await api.post('/auth/register', { name, email, password, phone, location, role: toApiRole(role) });
+        return res.data;
     };
 
     const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        clearSession();
         setUser(null);
     };
 
-    const updateUser = updates => {
-        const nextUser = { ...user, ...updates };
+    const updateUser = async updates => {
+        const merged = { ...user, ...updates };
+        const saved = await updateMyProfile({ name: merged.name, phone: merged.phone || null, location: merged.location || null });
+        const nextUser = { ...merged, name: saved.name, phone: saved.phone || '', location: saved.location || '' };
         localStorage.setItem('user', JSON.stringify(nextUser));
-        writeCollection('registeredUsers', getRegisteredUsers().map(record => record.email === user.email ? { ...record, ...updates } : record));
         setUser(nextUser);
     };
 

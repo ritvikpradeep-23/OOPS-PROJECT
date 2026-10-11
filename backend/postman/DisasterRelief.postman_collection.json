@@ -42,6 +42,10 @@
       "value": ""
     },
     {
+      "key": "assignmentId",
+      "value": ""
+    },
+    {
       "key": "notificationId",
       "value": ""
     },
@@ -477,7 +481,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"FLOOD\",\n  \"description\": \"Heavy flooding in low-lying areas\",\n  \"severity\": \"CRITICAL\",\n  \"status\": \"ACTIVE\",\n  \"latitude\": 9.93,\n  \"longitude\": 76.26\n}",
+              "raw": "{\n  \"name\": \"Kochi Floods\",\n  \"location\": \"Kochi\",\n  \"affected\": 1200,\n  \"camps\": 4,\n  \"type\": \"FLOOD\",\n  \"description\": \"Heavy flooding in low-lying areas\",\n  \"severity\": \"CRITICAL\",\n  \"status\": \"ACTIVE\",\n  \"latitude\": 9.93,\n  \"longitude\": 76.26\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -633,7 +637,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"disasterId\": \"{{disasterId}}\",\n  \"requestType\": \"FOOD\",\n  \"description\": \"Family of 4 needs food\",\n  \"priority\": \"CRITICAL\",\n  \"latitude\": 9.93,\n  \"longitude\": 76.26\n}",
+              "raw": "{\n  \"disasterId\": \"{{disasterId}}\",\n  \"requestType\": \"FOOD\",\n  \"description\": \"Family of 4 needs food\",\n  \"priority\": \"CRITICAL\",\n  \"latitude\": 9.93,\n  \"longitude\": 76.26,\n  \"locationText\": \"Community hall, Aluva\",\n  \"peopleAffected\": 4\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -653,6 +657,105 @@
               }
             }
           ]
+        },
+        {
+          "name": "Edit own request while pending (citizen)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "{{requestId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{citizenToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestType\": \"FOOD\",\n  \"description\": \"Family of 5 needs food\",\n  \"priority\": \"HIGH\",\n  \"latitude\": 9.93,\n  \"longitude\": 76.26,\n  \"locationText\": \"Community hall, Aluva\",\n  \"peopleAffected\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Complete request (owner or admin)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "{{requestId}}",
+                "complete"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{citizenToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete request (owner or admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{requestId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "requests",
+                "{{requestId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{citizenToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
         },
         {
           "name": "List my requests (citizen) / all (admin)",
@@ -813,14 +916,26 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rescueTeamId\": \"{{teamId}}\",\n  \"volunteerId\": \"{{volunteerId}}\"\n}",
+              "raw": "{\n  \"rescueTeamId\": \"{{teamId}}\",\n  \"volunteerId\": \"{{volunteerId}}\",\n  \"disasterId\": \"{{disasterId}}\",\n  \"scheduledAt\": \"2026-09-25T10:30\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             }
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "pm.collectionVariables.set('assignmentId', j.id);"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Update status -> IN_PROGRESS (admin)",
@@ -1557,6 +1672,121 @@
               ]
             }
           }
+        },
+        {
+          "name": "My volunteer application + latest assignment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/volunteers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "volunteers",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{citizenToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve / reject / activate volunteer (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/volunteers/{{volunteerId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "volunteers",
+                "{{volunteerId}}",
+                "status"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Respond to assignment (volunteer)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/volunteers/assignments/{{assignmentId}}/respond",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "volunteers",
+                "assignments",
+                "{{assignmentId}}",
+                "respond"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{citizenToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accepted\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -1723,6 +1953,102 @@
                   "type": "string"
                 }
               ]
+            }
+          }
+        },
+        {
+          "name": "Delete notification",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{notificationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "{{notificationId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{citizenToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Broadcast alert to all users (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/broadcast",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "broadcast"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Dam gates opening\",\n  \"message\": \"Evacuate low-lying areas\",\n  \"severity\": \"CRITICAL EVACUATION ALERT (Red)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Public",
+      "item": [
+        {
+          "name": "Login-screen stats (no token)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/public/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "stats"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
             }
           }
         }

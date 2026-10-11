@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert, Lock, AlertTriangle, Eye, ShieldCheck, Siren, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { readDisasters, readReliefCenters, readRequests, readVolunteers } from '../../services/localStore';
+import { errorMessage, getPublicStats } from '../../services/backend';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -11,13 +11,19 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
-    const { login } = useAuth();
-    const applicationCounts = {
-        centers: readReliefCenters().length,
-        assisted: readRequests().filter(request => request.status === 'Completed').length,
-        fulfillment: readDisasters().filter(disaster => disaster.status === 'Resolved').length,
-        deployments: readVolunteers().filter(volunteer => volunteer.status === 'Active').length
-    };
+    const { login, logout } = useAuth();
+    const [applicationCounts, setApplicationCounts] = useState({ centers: 0, assisted: 0, fulfillment: 0, deployments: 0 });
+
+    useEffect(() => {
+        getPublicStats()
+            .then(stats => setApplicationCounts({
+                centers: stats.centers,
+                assisted: stats.assisted,
+                fulfillment: stats.resolvedDisasters,
+                deployments: stats.activeVolunteers
+            }))
+            .catch(() => {});
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -27,15 +33,16 @@ const Login = () => {
         }
         setError('');
         try {
-            const user = await login({ email: email.trim(), password, role: role.toUpperCase() });
+            const user = await login({ email: email.trim(), password });
             if (user.role !== role.toUpperCase()) {
-                throw new Error(`These credentials are registered for the ${user.role === 'ADMIN' ? 'admin' : 'user'} role.`);
+                logout();
+                setError(`These credentials are registered for the ${user.role === 'ADMIN' ? 'admin' : 'user'} role.`);
+                return;
             }
             if (user.role === 'ADMIN') navigate('/admin/dashboard');
             else navigate('/user/dashboard');
         } catch (error) {
-            setError(error.message || 'Unable to sign in with these credentials. Register first or check your details.');
-            console.error('Login failed', error);
+            setError(errorMessage(error));
         }
     };
 

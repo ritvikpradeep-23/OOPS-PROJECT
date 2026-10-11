@@ -50,6 +50,8 @@ public class ReliefCenterService {
         center.setOccupied(request.occupied() != null ? request.occupied() : 0);
         center.setFacilities(request.facilities());
         center.setAvailability(request.availability() != null ? request.availability() : true);
+        center.setLatitude(request.latitude());
+        center.setLongitude(request.longitude());
     }
 
     private ReliefCenter findCenter(Long id) {

@@ -30,6 +30,10 @@ public class Resource {
     @Column(name = "minimum_required", nullable = false)
     private Integer minimumRequired = 0;
 
+    private Double latitude;
+
+    private Double longitude;
+
     public boolean isLowStock() {
         return quantity < minimumRequired;
     }

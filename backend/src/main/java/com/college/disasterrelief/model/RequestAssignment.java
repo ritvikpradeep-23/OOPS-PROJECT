@@ -31,6 +31,9 @@ public class RequestAssignment {
     @JoinColumn(name = "volunteer_id")
     private VolunteerProfile volunteer;
 
+    @Column(name = "scheduled_at")
+    private LocalDateTime scheduledAt;
+
     @Column(name = "assigned_at", updatable = false)
     private LocalDateTime assignedAt;
 

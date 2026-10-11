@@ -9,6 +9,10 @@ import java.time.LocalDateTime;
 
 public record DisasterResponse(
         Long id,
+        String name,
+        String location,
+        Integer affected,
+        Integer camps,
         DisasterType type,
         String description,
         Severity severity,
@@ -18,7 +22,8 @@ public record DisasterResponse(
         LocalDateTime createdAt
 ) {
     public static DisasterResponse from(Disaster d) {
-        return new DisasterResponse(d.getId(), d.getType(), d.getDescription(), d.getSeverity(),
-                d.getStatus(), d.getLatitude(), d.getLongitude(), d.getCreatedAt());
+        return new DisasterResponse(d.getId(), d.getName(), d.getLocation(), d.getAffected(), d.getCamps(),
+                d.getType(), d.getDescription(), d.getSeverity(), d.getStatus(),
+                d.getLatitude(), d.getLongitude(), d.getCreatedAt());
     }
 }

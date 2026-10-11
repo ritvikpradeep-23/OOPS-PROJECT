@@ -21,6 +21,14 @@ public class Disaster {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String name;
+
+    private String location;
+
+    private Integer affected;
+
+    private Integer camps;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DisasterType type;

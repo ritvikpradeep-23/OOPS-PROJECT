@@ -9,10 +9,12 @@ public record ResourceResponse(
         Integer quantity,
         String location,
         Integer minimumRequired,
-        boolean lowStock
+        boolean lowStock,
+        Double latitude,
+        Double longitude
 ) {
     public static ResourceResponse from(Resource r) {
         return new ResourceResponse(r.getId(), r.getName(), r.getCategory(), r.getQuantity(),
-                r.getLocation(), r.getMinimumRequired(), r.isLowStock());
+                r.getLocation(), r.getMinimumRequired(), r.isLowStock(), r.getLatitude(), r.getLongitude());
     }
 }

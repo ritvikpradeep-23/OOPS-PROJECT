@@ -11,6 +11,7 @@ public record AssignmentResponse(
         Long rescueTeamId,
         Long volunteerId,
         AssignmentStatus status,
+        LocalDateTime scheduledAt,
         LocalDateTime assignedAt
 ) {
     public static AssignmentResponse from(RequestAssignment a) {
@@ -20,6 +21,7 @@ public record AssignmentResponse(
                 a.getRescueTeam() != null ? a.getRescueTeam().getId() : null,
                 a.getVolunteer() != null ? a.getVolunteer().getId() : null,
                 a.getStatus(),
+                a.getScheduledAt(),
                 a.getAssignedAt());
     }
 }

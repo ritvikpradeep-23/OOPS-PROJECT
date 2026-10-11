@@ -10,6 +10,8 @@ public record ReliefRequestCreateRequest(
         String description,
         @NotNull Priority priority,
         Double latitude,
-        Double longitude
+        Double longitude,
+        String locationText,
+        Integer peopleAffected
 ) {
 }

@@ -32,6 +32,10 @@ public class ReliefCenter {
     @Column(nullable = false)
     private Boolean availability = true;
 
+    private Double latitude;
+
+    private Double longitude;
+
     public boolean hasSpace() {
         return occupied < capacity;
     }

@@ -50,6 +50,10 @@ public class DisasterService {
     }
 
     private void applyRequest(Disaster disaster, DisasterRequest request) {
+        disaster.setName(request.name());
+        disaster.setLocation(request.location());
+        disaster.setAffected(request.affected());
+        disaster.setCamps(request.camps());
         disaster.setType(request.type());
         disaster.setDescription(request.description());
         disaster.setSeverity(request.severity());

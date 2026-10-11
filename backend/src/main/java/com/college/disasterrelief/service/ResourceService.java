@@ -67,6 +67,8 @@ public class ResourceService {
         resource.setQuantity(request.quantity());
         resource.setLocation(request.location());
         resource.setMinimumRequired(request.minimumRequired());
+        resource.setLatitude(request.latitude());
+        resource.setLongitude(request.longitude());
     }
 
     private Resource findResource(Long id) {

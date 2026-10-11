@@ -44,6 +44,12 @@ public class ReliefRequest {
 
     private Double longitude;
 
+    @Column(name = "location_text")
+    private String locationText;
+
+    @Column(name = "people_affected")
+    private Integer peopleAffected;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RequestStatus status = RequestStatus.SUBMITTED;

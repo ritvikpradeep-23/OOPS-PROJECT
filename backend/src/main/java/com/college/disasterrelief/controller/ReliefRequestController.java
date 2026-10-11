@@ -35,8 +35,25 @@ public class ReliefRequestController {
     }
 
     @GetMapping("/{id}")
-    public ReliefRequestResponse getById(@PathVariable Long id) {
-        return reliefRequestService.getById(id);
+    public ReliefRequestResponse getById(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        return reliefRequestService.getById(user, id);
+    }
+
+    @PutMapping("/{id}")
+    public ReliefRequestResponse update(@AuthenticationPrincipal User user, @PathVariable Long id,
+                                        @Valid @RequestBody ReliefRequestUpdateRequest request) {
+        return reliefRequestService.update(user, id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        reliefRequestService.delete(user, id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/complete")
+    public ReliefRequestResponse complete(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        return reliefRequestService.complete(user, id);
     }
 
     @PutMapping("/{id}/status")

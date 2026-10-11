@@ -10,6 +10,8 @@ public record ReliefCenterRequest(
         @NotNull @Min(0) Integer capacity,
         @Min(0) Integer occupied,
         String facilities,
-        Boolean availability
+        Boolean availability,
+        Double latitude,
+        Double longitude
 ) {
 }
