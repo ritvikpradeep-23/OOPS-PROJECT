@@ -37,7 +37,9 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The API address comes from `VITE_API_URL` (default `http://localhost:8080/api`); copy `frontend/.env.example` to `frontend/.env` to change it, for example to your laptop's IP when demoing from another device.
+Open http://localhost:5173. The dev server forwards every `/api` call to the backend at `http://localhost:8080`, so the browser never contacts port 8080 directly. This also works from a phone or another laptop: open the "Network" address Vite prints. To point the dev server at a different backend, set `BACKEND_URL` in `frontend/.env` (see `frontend/.env.example`).
+
+If a page says "Cannot reach the backend", the backend isn't running or failed to start. Check its console; the usual cause is missing `DATABASE_URL` / `DB_USERNAME` / `DB_PASSWORD` variables, which PowerShell only keeps for the window you set them in.
 
 ## How the UI maps to the API
 

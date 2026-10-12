@@ -2,8 +2,13 @@ import api from './api';
 
 /* ---------- helpers ---------- */
 
-export const errorMessage = error =>
-    error?.response?.data?.message || error?.message || 'Something went wrong. Please try again.';
+export const errorMessage = error => {
+    if (error?.response?.data?.message) return error.response.data.message;
+    if (error?.code === 'ERR_NETWORK' || (error?.request && !error?.response)) {
+        return 'Cannot reach the server. Make sure the backend is running, then try again.';
+    }
+    return error?.message || 'Something went wrong. Please try again.';
+};
 
 const titleCase = value => String(value || '')
     .toLowerCase()
