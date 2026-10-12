@@ -39,6 +39,27 @@ Open http://localhost:5173. The dev server forwards every `/api` call to the bac
 
 If a page says "Cannot reach the backend", the backend isn't running or failed to start. Check its console; the usual cause is a missing or wrong `backend/.env`.
 
+## Deploy
+
+Vercel hosts the frontend only; it can't run the Java backend, so that goes on Render. The database stays on Neon. Deploy the backend first, because the frontend needs its URL.
+
+### 1. Backend on Render
+
+1. On [render.com](https://render.com), choose **New → Blueprint** and pick this repository. Render reads [`render.yaml`](render.yaml) and builds [`backend/Dockerfile`](backend/Dockerfile).
+2. When asked, enter `DATABASE_URL`, `DB_USERNAME` and `DB_PASSWORD` (same values as `backend/.env`), and a new `SEED_ADMIN_PASSWORD` for the admin account. `JWT_SECRET` is generated for you.
+3. When the deploy finishes, copy the service URL, e.g. `https://disaster-relief-backend.onrender.com`. Opening `<that URL>/api/public/stats` should show some JSON.
+
+The free plan sleeps after 15 minutes without traffic, so the first request after a pause takes about a minute.
+
+### 2. Frontend on Vercel
+
+1. On [vercel.com/new](https://vercel.com/new), import this repository.
+2. Set **Root Directory** to `frontend`. Vercel detects Vite.
+3. Under **Environment Variables**, add `VITE_API_URL` = `<your Render URL>/api`.
+4. Click **Deploy**. Vercel gives you the site link, and redeploys on every push to `main`.
+
+If you change `VITE_API_URL` later, redeploy, because the value is built into the site.
+
 ## How the UI maps to the API
 
 The UI uses friendly labels; the backend uses enums. The translation lives in one file, [`frontend/src/services/backend.js`](frontend/src/services/backend.js):
