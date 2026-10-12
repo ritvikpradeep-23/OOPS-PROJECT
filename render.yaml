@@ -1,5 +1,6 @@
 # Render blueprint for the Spring Boot backend (Vercel hosts only the frontend).
 # Render asks for the values marked sync: false when you create the service.
+# DATABASE_URL can be pasted exactly as Neon shows it (postgresql://user:pass@host/db?sslmode=require).
 services:
   - type: web
     name: disaster-relief-backend
@@ -9,10 +10,6 @@ services:
     healthCheckPath: /api/public/stats
     envVars:
       - key: DATABASE_URL
-        sync: false
-      - key: DB_USERNAME
-        sync: false
-      - key: DB_PASSWORD
         sync: false
       - key: SEED_ADMIN_PASSWORD
         sync: false

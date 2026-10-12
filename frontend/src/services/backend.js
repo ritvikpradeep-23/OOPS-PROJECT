@@ -7,6 +7,9 @@ export const errorMessage = error => {
     if (error?.code === 'ERR_NETWORK' || (error?.request && !error?.response)) {
         return 'Cannot reach the server. Make sure the backend is running, then try again.';
     }
+    if (error?.response?.status === 404 && typeof error.response.data !== 'object') {
+        return 'The backend is not connected to this site yet.';
+    }
     return error?.message || 'Something went wrong. Please try again.';
 };
 

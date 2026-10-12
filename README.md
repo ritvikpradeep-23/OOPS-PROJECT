@@ -41,24 +41,25 @@ If a page says "Cannot reach the backend", the backend isn't running or failed t
 
 ## Deploy
 
-Vercel hosts the frontend only; it can't run the Java backend, so that goes on Render. The database stays on Neon. Deploy the backend first, because the frontend needs its URL.
+Vercel hosts the frontend; it can't run the Java backend, so that goes on Render. The database stays on Neon.
 
 ### 1. Backend on Render
 
 1. On [render.com](https://render.com), choose **New → Blueprint** and pick this repository. Render reads [`render.yaml`](render.yaml) and builds [`backend/Dockerfile`](backend/Dockerfile).
-2. When asked, enter `DATABASE_URL`, `DB_USERNAME` and `DB_PASSWORD` (same values as `backend/.env`), and a new `SEED_ADMIN_PASSWORD` for the admin account. `JWT_SECRET` is generated for you.
+2. When asked, paste Neon's connection string into `DATABASE_URL` exactly as Neon shows it (`postgresql://user:password@host/db?sslmode=require`), and choose a `SEED_ADMIN_PASSWORD` for the admin account. `JWT_SECRET` is generated for you.
 3. When the deploy finishes, copy the service URL, e.g. `https://disaster-relief-backend.onrender.com`. Opening `<that URL>/api/public/stats` should show some JSON.
 
 The free plan sleeps after 15 minutes without traffic, so the first request after a pause takes about a minute.
 
 ### 2. Frontend on Vercel
 
-1. On [vercel.com/new](https://vercel.com/new), import this repository.
-2. Set **Root Directory** to `frontend`. Vercel detects Vite.
-3. Under **Environment Variables**, add `VITE_API_URL` = `<your Render URL>/api`.
-4. Click **Deploy**. Vercel gives you the site link, and redeploys on every push to `main`.
+The Vercel project builds `frontend/` and redeploys on every push to `main`. The site calls `/api` on its own domain, and [`frontend/vercel.json`](frontend/vercel.json) forwards those calls to the backend. To connect a backend, add this rule as the first entry under `rewrites`, with your Render URL, and push:
 
-If you change `VITE_API_URL` later, redeploy, because the value is built into the site.
+```json
+{ "source": "/api/:path*", "destination": "https://<your-render-service>.onrender.com/api/:path*" }
+```
+
+Until that rule exists, the site shows "The backend is not connected to this site yet."
 
 ## How the UI maps to the API
 
