@@ -53,13 +53,11 @@ The free plan sleeps after 15 minutes without traffic, so the first request afte
 
 ### 2. Frontend on Vercel
 
-The Vercel project builds `frontend/` and redeploys on every push to `main`. The site calls `/api` on its own domain, and [`frontend/vercel.json`](frontend/vercel.json) forwards those calls to the backend. To connect a backend, add this rule as the first entry under `rewrites`, with your Render URL, and push:
+The Vercel project builds `frontend/` and redeploys on every push to `main`.
 
-```json
-{ "source": "/api/:path*", "destination": "https://<your-render-service>.onrender.com/api/:path*" }
-```
+**Without a backend (current setup).** A production build with no `VITE_API_URL` runs the API inside the browser ([`frontend/src/services/browserBackend.js`](frontend/src/services/browserBackend.js)). It follows the same rules as the Java services and keeps the data in that browser's storage, so each phone or computer has its own accounts and data. The admin `admin@disasterrelief.local` / `Admin@123` exists on every device. The login page shows "Demo mode" while this is active.
 
-Until that rule exists, the site shows "The backend server is not connected to this site yet."
+**With the Render backend.** Create `frontend/.env.production` containing `VITE_API_URL=https://<your-render-service>.onrender.com/api` and push. The site then uses the real backend and shared Neon database.
 
 ## How the UI maps to the API
 

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShieldAlert, Lock, AlertTriangle, Eye, ShieldCheck, Siren, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { errorMessage, getPublicStats } from '../../services/backend';
+import { BROWSER_ONLY } from '../../services/api';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -194,6 +195,7 @@ const Login = () => {
                     <div className="auth-links" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', marginTop: '2rem' }}>
                         <p>New field responder? <Link to="/register" style={{ color: 'var(--brand-primary)' }}>Register deployment details</Link></p>
                         <p style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--text-tertiary)', fontSize: '0.75rem' }}><Lock size={12} /> Emergency Operations Center: ops@resilio.org</p>
+                        {BROWSER_ONLY && <p style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem', textAlign: 'center' }}>Demo mode: accounts and data are saved on this device only.</p>}
                     </div>
                 </div>
             </div>

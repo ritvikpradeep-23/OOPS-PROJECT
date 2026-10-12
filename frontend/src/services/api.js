@@ -1,12 +1,17 @@
 import axios from 'axios';
+import { browserAdapter } from './browserBackend';
+
+// A production build without VITE_API_URL has no server to call, so it runs the
+// API inside the browser instead (data stays on the device; see browserBackend.js).
+export const BROWSER_ONLY = !import.meta.env.DEV && !import.meta.env.VITE_API_URL;
 
 const api = axios.create({
     // In dev, Vite proxies /api to the backend (see vite.config.js).
-    // VITE_API_URL is only for production builds hosted apart from the backend.
     baseURL: (!import.meta.env.DEV && import.meta.env.VITE_API_URL) || '/api',
     headers: {
         'Content-Type': 'application/json',
     },
+    ...(BROWSER_ONLY ? { adapter: browserAdapter } : {}),
 });
 
 api.interceptors.request.use(
