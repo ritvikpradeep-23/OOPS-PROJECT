@@ -13,16 +13,14 @@ The frontend talks to the backend over HTTP. There is no mock data: everything (
 
 ### 1. Backend (port 8080)
 
-Needs JDK 17+ and Maven. Set the database variables (Neon JDBC URL, see [`backend/README.md`](backend/README.md)) and start it:
+Needs JDK 17+ and Maven. Copy `backend/.env.example` to `backend/.env` and fill in your Neon details (JDBC URL, see [`backend/README.md`](backend/README.md)). The backend reads that file on every start, so you only do this once. `.env` is git-ignored, so your password stays out of the repo. Then start it:
 
-```powershell
-$env:DATABASE_URL = "jdbc:postgresql://<neon-host>/<db>?sslmode=require"
-$env:DB_USERNAME  = "<neon-username>"
-$env:DB_PASSWORD  = "<neon-password>"
-$env:JWT_SECRET   = "any-long-random-string-at-least-32-characters"
+```bash
 cd backend
 mvn spring-boot:run
 ```
+
+Wait for `Started DisasterReliefBackendApplication` in the console before opening the frontend. Variables set in the terminal (`$env:DATABASE_URL = ...`) still work and take priority over the file.
 
 On first start the schema is created automatically and an admin is seeded:
 `admin@disasterrelief.local` / `Admin@123` (change it after first login).
@@ -37,9 +35,9 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The dev server forwards every `/api` call to the backend at `http://localhost:8080`, so the browser never contacts port 8080 directly. This also works from a phone or another laptop: open the "Network" address Vite prints. To point the dev server at a different backend, set `BACKEND_URL` in `frontend/.env` (see `frontend/.env.example`).
+Open http://localhost:5173. The dev server forwards every `/api` call to the backend at `http://127.0.0.1:8080`, so the browser never contacts port 8080 directly. This also works from a phone or another laptop: open the "Network" address Vite prints. To point the dev server at a different backend, set `BACKEND_URL` in `frontend/.env` (see `frontend/.env.example`).
 
-If a page says "Cannot reach the backend", the backend isn't running or failed to start. Check its console; the usual cause is missing `DATABASE_URL` / `DB_USERNAME` / `DB_PASSWORD` variables, which PowerShell only keeps for the window you set them in.
+If a page says "Cannot reach the backend", the backend isn't running or failed to start. Check its console; the usual cause is a missing or wrong `backend/.env`.
 
 ## How the UI maps to the API
 

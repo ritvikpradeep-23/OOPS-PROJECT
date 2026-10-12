@@ -5,6 +5,11 @@ spring:
   application:
     name: disaster-relief-backend
 
+  # Optional backend/.env file (KEY=value lines) so the database settings
+  # don't have to be set again in every new terminal.
+  config:
+    import: optional:file:.env[.properties]
+
   datasource:
     url: ${DATABASE_URL}
     username: ${DB_USERNAME}

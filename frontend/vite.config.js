@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   // The dev server forwards /api to the Spring Boot backend, so the browser
   // only ever talks to this server: no CORS, and it works from other devices.
-  const backend = env.BACKEND_URL || 'http://localhost:8080'
+  const backend = env.BACKEND_URL || 'http://127.0.0.1:8080'
 
   return {
     plugins: [react()],
