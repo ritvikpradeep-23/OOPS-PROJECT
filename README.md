@@ -59,7 +59,7 @@ The Vercel project builds `frontend/` and redeploys on every push to `main`. The
 { "source": "/api/:path*", "destination": "https://<your-render-service>.onrender.com/api/:path*" }
 ```
 
-Until that rule exists, the site shows "The backend is not connected to this site yet."
+Until that rule exists, the site shows "The backend server is not connected to this site yet."
 
 ## How the UI maps to the API
 
